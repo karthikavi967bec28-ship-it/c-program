@@ -1,0 +1,33 @@
+#include <climits>
+#include <cmath>
+
+class Solution {
+public:
+    int divide(int dividend, int divisor) {
+        // Handle overflow cases up front
+        if (dividend == INT_MIN && divisor == -1) return INT_MAX;
+        if (dividend == INT_MIN && divisor == 1) return INT_MIN;
+
+        // Determine sign of the quotient
+        bool negative = (dividend < 0) ^ (divisor < 0);
+
+        // Convert both to negative values to avoid INT_MIN overflow when using absolute values
+        long long absDividend = labs(dividend);
+        long long absDivisor = labs(divisor);
+
+        long long quotient = 0;
+        
+        // Use bit shifting to find how many times the divisor fits into dividend
+        while (absDividend >= absDivisor) {
+            long long tempDivisor = absDivisor, multiple = 1;
+            while (absDividend >= (tempDivisor << 1)) {
+                tempDivisor <<= 1;
+                multiple <<= 1;
+            }
+            absDividend -= tempDivisor;
+            quotient += multiple;
+        }
+
+        return negative ? -quotient : quotient;
+    }
+};
