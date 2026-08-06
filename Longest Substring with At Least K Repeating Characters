@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <string.h>
+
+int longestSubstring(char* s, int k) {
+    int n = strlen(s);
+    if (n == 0 || k > n) return 0;
+    
+    int max_len = 0;
+
+    // Loop through the maximum possible number of unique characters allowed (1 to 26)
+    for (int u = 1; u <= 26; ++u) {
+        int freq[26] = {0};
+        int left = 0, right = 0;
+        int unique_count = 0;
+        int count_at_least_k = 0;
+
+        while (right < n) {
+            // Expand the window boundary on the right
+            int right_idx = s[right] - 'a';
+            if (freq[right_idx] == 0) {
+                unique_count++;
+            }
+            freq[right_idx]++;
+            if (freq[right_idx] == k) {
+                count_at_least_k++;
+            }
+            right++;
+
+            // Shrink the window from the left if unique characters exceed target 'u'
+            while (unique_count > u) {
+                int left_idx = s[left] - 'a';
+                if (freq[left_idx] == k) {
+                    count_at_least_k--;
+                }
+                freq[left_idx]--;
+                if (freq[left_idx] == 0) {
+                    unique_count--;
+                }
+                left++;
+            }
+
+            // If the window has exactly 'u' unique characters and all meet the 'k' frequency
+            if (unique_count == u && count_at_least_k == u) {
+                int current_len = right - left;
+                if (current_len > max_len) {
+                    max_len = current_len;
+                }
+            }
+        }
+    }
+
+    return max_len;
+}
+
