@@ -1,0 +1,43 @@
+#include <stdlib.h>
+#include <string.h>
+
+// Global telephone keypad mapping
+const char* KEYPAD[] = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+
+// Internal backtracking engine
+void solve(char* digits, int index, char* current, char** result, int* k) {
+    if (digits[index] == '\0') {
+        current[index] = '\0';
+        result[*k] = (char*)malloc((index + 1) * sizeof(char));
+        strcpy(result[(*k)++], current);
+        return;
+    }
+
+    const char* letters = KEYPAD[digits[index] - '0'];
+    for (int i = 0; letters[i] != '\0'; i++) {
+        current[index] = letters[i];
+        solve(digits, index + 1, current, result, k);
+    }
+}
+
+// Main function matching the required standard signature
+char** letterCombinations(char* digits, int* returnSize) {
+    *returnSize = 0;
+    int len = strlen(digits);
+    if (len == 0) return NULL;
+
+    // Calculate maximum combinations to properly bound memory allocations
+    int max_combinations = 1;
+    for (int i = 0; i < len; i++) {
+        int d = digits[i] - '0';
+        max_combinations *= (d == 7 || d == 9) ? 4 : 3;
+    }
+
+    char** result = (char**)malloc(max_combinations * sizeof(char*));
+    char* current = (char*)malloc((len + 1) * sizeof(char));
+
+    solve(digits, 0, current, result, returnSize);
+    
+    free(current);
+    return result;
+}
