@@ -1,0 +1,61 @@
+#include <vector>
+#include <string>
+#include <unordered_map>
+
+class Solution {
+public:
+    std::vector<int> findSubstring(std::string s, std::vector<std::string>& words) {
+        std::vector<int> result;
+        if (s.empty() || words.empty()) return result;
+
+        int word_len = words[0].length();
+        int num_words = words.size();
+        int total_len = word_len * num_words;
+        int s_len = s.length();
+
+        // Count expected frequencies for each word
+        std::unordered_map<std::string, int> word_count;
+        for (const auto& word : words) {
+            word_count[word]++;
+        }
+
+        // Loop through all possible word-start offsets
+        for (int i = 0; i < word_len; ++i) {
+            int left = i;
+            int right = i;
+            int words_used = 0;
+            std::unordered_map<std::string, int> current_count;
+
+            while (right + word_len <= s_len) {
+                // Extract the next word from the right
+                std::string word = s.substr(right, word_len);
+                right += word_len;
+
+                if (word_count.count(word)) {
+                    current_count[word]++;
+                    words_used++;
+
+                    // If a word is overused, shrink the window from the left
+                    while (current_count[word] > word_count[word]) {
+                        std::string left_word = s.substr(left, word_len);
+                        current_count[left_word]--;
+                        words_used--;
+                        left += word_len;
+                    }
+
+                    // Check if a complete valid permutation matches
+                    if (words_used == num_words) {
+                        result.push_back(left);
+                    }
+                } else {
+                    // Invalid word encountered: clear map and reset pointers
+                    current_count.clear();
+                    words_used = 0;
+                    left = right;
+                }
+            }
+        }
+
+        return result;
+    }
+};
