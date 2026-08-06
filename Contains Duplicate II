@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Structure to pair each number with its original index
+typedef struct {
+    int value;
+    int index;
+} Element;
+
+// Comparison function for qsort
+int compare(const void* a, const void* b) {
+    Element* elemA = (Element*)a;
+    Element* elemB = (Element*)b;
+    
+    // Sort primarily by value
+    if (elemA->value < elemB->value) return -1;
+    if (elemA->value > elemB->value) return 1;
+    
+    // If values are equal, sort by index
+    return elemA->index - elemB->index;
+}
+
+bool containsNearbyDuplicate(int* nums, int numsSize, int k) {
+    if (numsSize <= 1 || k <= 0) return false;
+
+    // Allocate memory for our element pairs
+    Element* arr = (Element*)malloc(numsSize * sizeof(Element));
+    for (int i = 0; i < numsSize; ++i) {
+        arr[i].value = nums[i];
+        arr[i].index = i;
+    }
+
+    // Sort the array by value, then by index
+    qsort(arr, numsSize, sizeof(Element), compare);
+
+    // Scan for identical values whose index difference is <= k
+    for (int i = 0; i < numsSize - 1; ++i) {
+        if (arr[i].value == arr[i + 1].value) {
+            if (arr[i + 1].index - arr[i].index <= k) {
+                free(arr);
+                return true;
+            }
+        }
+    }
+
+    free(arr);
+    return false;
+}
