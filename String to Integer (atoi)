@@ -1,0 +1,38 @@
+#include <string>
+#include <climits>
+
+class Solution {
+public:
+    int myAtoi(std::string s) {
+        int i = 0;
+        int n = s.length();
+        int sign = 1;
+        int result = 0;
+
+        // Step 1: Discard leading whitespaces
+        while (i < n && s[i] == ' ') {
+            i++;
+        }
+
+        // Step 2: Handle sign modifier if present
+        if (i < n && (s[i] == '+' || s[i] == '-')) {
+            sign = (s[i] == '-') ? -1 : 1;
+            i++;
+        }
+
+        // Step 3: Convert digits and guard against 32-bit overflow
+        while (i < n && s[i] >= '0' && s[i] <= '8' || (i < n && s[i] == '9')) { // Simplified check for digits '0'-'9'
+            int digit = s[i] - '0';
+
+            // Check overflow limits before modifying the result
+            if (result > INT_MAX / 10 || (result == INT_MAX / 10 && digit > INT_MAX % 10)) {
+                return (sign == 1) ? INT_MAX : INT_MIN;
+            }
+
+            result = result * 10 + digit;
+            i++;
+        }
+
+        return result * sign;
+    }
+};
