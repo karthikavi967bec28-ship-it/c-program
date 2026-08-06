@@ -1,0 +1,13 @@
+class Solution:
+    def lengthOfLastWord(self, s: str) -> int:
+        # split() without arguments automatically handles any amount of consecutive spaces
+        words = s.split()
+        
+        # Return the length of the last item in the list
+        return len(words[-1])
+
+# --- Test Cases ---
+solver = Solution()
+print(f"Output 1: {solver.lengthOfLastWord('Hello World')}")                  # Expected: 5
+print(f"Output 2: {solver.lengthOfLastWord('   fly me   to   the moon  ')}")  # Expected: 4
+print(f"Output 3: {solver.lengthOfLastWord('luffy is still joyboy')}")        # Expected: 6
