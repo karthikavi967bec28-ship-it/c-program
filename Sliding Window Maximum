@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize) {
+    if (nums == NULL || numsSize == 0 || k <= 0) {
+        *returnSize = 0;
+        return NULL;
+    }
+
+    int resultSize = numsSize - k + 1;
+    int* result = (int*)malloc(resultSize * sizeof(int));
+    *returnSize = resultSize;
+
+    // Allocate an array to act as our double-ended queue (stores indices)
+    int* deque = (int*)malloc(numsSize * sizeof(int));
+    int head = 0; // Front pointer of the deque
+    int tail = 0; // Back pointer of the deque
+
+    for (int i = 0; i < numsSize; ++i) {
+        // 1. Remove indices that are outside the current sliding window boundary
+        if (head < tail && deque[head] < i - k + 1) {
+            head++;
+        }
+
+        // 2. Maintain a decreasing monotonic order in the deque
+        // Remove indices of all elements smaller than the current element
+        while (head < tail && nums[deque[tail - 1]] <= nums[i]) {
+            tail--;
+        }
+
+        // Add the current element's index to the back of the deque
+        deque[tail] = i;
+        tail++;
+
+        // 3. Once the first window is fully formed, append the front to results
+        if (i >= k - 1) {
+            result[i - k + 1] = nums[deque[head]];
+        }
+    }
+
+    free(deque);
+    return result;
+}
