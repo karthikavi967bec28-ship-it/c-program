@@ -1,0 +1,32 @@
+#include <stdlib.h>
+#include <string.h>
+
+void backtrack(int n, int open, int close, char* current, int idx, char** res, int* count) {
+    if (idx == 2 * n) {
+        current[idx] = '\0';
+        res[*count] = malloc((2 * n + 1) * sizeof(char));
+        strcpy(res[(*count)++], current);
+        return;
+    }
+    
+    if (open < n) {
+        current[idx] = '(';
+        backtrack(n, open + 1, close, current, idx + 1, res, count);
+    }
+    if (close < open) {
+        current[idx] = ')';
+        backtrack(n, open, close + 1, current, idx + 1, res, count);
+    }
+}
+
+char** generateParenthesis(int n, int* returnSize) {
+    // Allocate space for up to 1500 strings (Catalan number for n=8 is 1430)
+    char** res = malloc(1500 * sizeof(char*));
+    char* current = malloc((2 * n + 1) * sizeof(char));
+    *returnSize = 0;
+    
+    backtrack(n, 0, 0, current, 0, res, returnSize);
+    
+    free(current);
+    return res;
+}
