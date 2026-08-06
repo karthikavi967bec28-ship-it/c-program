@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <limits.h>
+
+int minSubArrayLen(int target, int* nums, int numsSize) {
+    if (nums == NULL || numsSize == 0) return 0;
+
+    int min_length = INT_MAX;
+    long long current_sum = 0; // Use long long to avoid integer overflow
+    int left = 0;
+
+    for (int right = 0; right < numsSize; ++right) {
+        current_sum += nums[right];
+
+        // Shrink the window from the left as long as the sum condition is satisfied
+        while (current_sum >= target) {
+            int current_length = right - left + 1;
+            if (current_length < min_length) {
+                min_length = current_length;
+            }
+            current_sum -= nums[left];
+            left++;
+        }
+    }
+
+    // If min_length remains INT_MAX, no valid subarray was found
+    return (min_length == INT_MAX) ? 0 : min_length;
+}
