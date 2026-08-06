@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+
+char* minWindow(char* s, char* t) {
+    if (s == NULL || t == NULL) return "";
+    
+    int s_len = strlen(s);
+    int t_len = strlen(t);
+    if (s_len < t_len || s_len == 0 || t_len == 0) return "";
+
+    // ASCII frequency tracking arrays
+    int target_counts[128] = {0};
+    int window_counts[128] = {0};
+
+    // Populate frequency requirements for string t
+    for (int i = 0; i < t_len; ++i) {
+        target_counts[(unsigned char)t[i]]++;
+    }
+
+    // Count how many unique characters in t have a frequency > 0
+    int required = 0;
+    for (int i = 0; i < 128; ++i) {
+        if (target_counts[i] > 0) {
+            required++;
+        }
+    }
+
+    int left = 0, right = 0;
+    int formed = 0; // Tracks unique characters matching target frequencies
+    
+    int min_len = INT_MAX;
+    int start_idx = 0;
+
+    while (right < s_len) {
+        char c = s[right];
+        window_counts[(unsigned char)c]++;
+
+        // Check if the current character frequency matches the target
+        if (target_counts[(unsigned char)c] > 0 && window_counts[(unsigned char)c] == target_counts[(unsigned char)c]) {
+            formed++;
+        }
+
+        // Contract the window from the left while it contains all characters
+        while (left <= right && formed == required) {
+            char left_char = s[left];
+
+            // Update minimum window dimensions
+            if (right - left + 1 < min_len) {
+                min_len = right - left + 1;
+                start_idx = left;
+            }
+
+            // Remove the leftmost character and update state
+            window_counts[(unsigned char)left_char]--;
+            if (target_counts[(unsigned char)left_char] > 0 && window_counts[(unsigned char)left_char] < target_counts[(unsigned char)left_char]) {
+                formed--;
+            }
+
+            left++; // Slide window left edge forward
+        }
+
+        right++; // Slide window right edge forward
+    }
+
+    // Return the minimum window substring or an empty string safely
+    if (min_len == INT_MAX) {
+        return "";
+    } else {
+        // Mutate the original string s to null-terminate the target substring
+        // Note: Make sure 's' is a modifiable character array (not a string literal) when testing
+        s[start_idx + min_len] = '\0';
+        return &s[start_idx];
+    }
+}
