@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Comparison function for qsort to sort characters alphabetically
+int compareChars(const void* a, const void* b) {
+    return (*(char*)a - *(char*)b);
+}
+
+char* orderlyQueue(char* s, int k) {
+    int n = strlen(s);
+    
+    // Case 1: If k > 1, we can sort the entire string alphabetically
+    if (k > 1) {
+        qsort(s, n, sizeof(char), compareChars);
+        return s;
+    }
+    
+    // Case 2: If k == 1, we can only perform cyclic rotations.
+    // Allocate space to construct and find the smallest rotation.
+    char* smallest = (char*)malloc((n + 1) * sizeof(char));
+    strcpy(smallest, s);
+    
+    char* current = (char*)malloc((n + 1) * sizeof(char));
+    
+    for (int i = 1; i < n; i++) {
+        // Create the rotated string: substring from i to end + substring from 0 to i
+        strncpy(current, s + i, n - i);
+        strncpy(current + (n - i), s, i);
+        current[n] = '\0';
+        
+        // Keep the lexicographically smaller string
+        if (strcmp(current, smallest) < 0) {
+            strcpy(smallest, current);
+        }
+    }
+    
+    free(current);
+    return smallest;
+}
