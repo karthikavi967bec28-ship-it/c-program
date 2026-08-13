@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+typedef struct {
+    int max_len;
+    int pref_len;
+    int suff_len;
+    char left_char;
+    char right_char;
+    int size;
+} Node;
+
+Node merge(Node L, Node R) {
+    Node res;
+    res.size = L.size + R.size;
+    res.left_char = L.left_char;
+    res.right_char = R.right_char;
+    
+    res.max_len = MAX(L.max_len, R.max_len);
+    res.pref_len = L.pref_len;
+    res.suff_len = R.suff_len;
+    
+    // If the boundaries meet with the same character, merge them
+    if (L.right_char == R.left_char) {
+        res.max_len = MAX(res.max_len, L.suff_len + R.pref_len);
+        
+        if (L.pref_len == L.size) {
+            res.pref_len = L.size + R.pref_len;
+        }
+        if (R.suff_len == R.size) {
+            res.suff_len = R.size + L.suff_len;
+        }
+    }
+    return res;
+}
+
+void buildTree(Node* tree, char* s, int node, int start, int end) {
+    if (start == end) {
+        tree[node].max_len = 1;
+        tree[node].pref_len = 1;
+        tree[node].suff_len = 1;
+        tree[node].left_char = s[start];
+        tree[node].right_char = s[start];
+        tree[node].size = 1;
+        return;
+    }
+    int mid = start + (end - start) / 2;
+    buildTree(tree, s, 2 * node, start, mid);
+    buildTree(tree, s, 2 * node + 1, mid + 1, end);
+    tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+}
+
+void updateTree(Node* tree, int node, int start, int end, int idx, char val) {
+    if (start == end) {
+        tree[node].left_char = val;
+        tree[node].right_char = val;
+        return;
+    }
+    int mid = start + (end - start) / 2;
+    if (idx <= mid) {
+        updateTree(tree, 2 * node, start, mid, idx, val);
+    } else {
+        updateTree(tree, 2 * node + 1, mid + 1, end, idx, val);
+    }
+    tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* longestRepeating(char* s, char* queryCharacters, int* queryIndices, int queryIndicesSize, int* returnSize) {
+    int n = strlen(s);
+    Node* tree = (Node*)malloc(4 * n * sizeof(Node));
+    
+    buildTree(tree, s, 1, 0, n - 1);
+    
+    int* result = (int*)malloc(queryIndicesSize * sizeof(int));
+    *returnSize = queryIndicesSize;
+    
+    for (int i = 0; i < queryIndicesSize; i++) {
+        int idx = queryIndices[i];
+        char val = queryCharacters[i];
+        
+        updateTree(tree, 1, 0, n - 1, idx, val);
+        result[i] = tree[1].max_len;
+    }
+    
+    free(tree);
+    return result;
+}
