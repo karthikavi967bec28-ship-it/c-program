@@ -1,0 +1,96 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+// Helper structure to manage results dynamically
+typedef struct {
+    char*** solutions;
+    int capacity;
+    int count;
+} ResultList;
+
+// Initialize the dynamic list for storing solutions
+void initList(ResultList* list) {
+    list->capacity = 10;
+    list->count = 0;
+    list->solutions = (char***)malloc(list->capacity * sizeof(char**));
+}
+
+// Add a valid board configuration to the results
+void addSolution(ResultList* list, char** board, int n) {
+    if (list->count >= list->capacity) {
+        list->capacity *= 2;
+        list->solutions = (char***)realloc(list->solutions, list->capacity * sizeof(char**));
+    }
+    
+    char** copy = (char**)malloc(n * sizeof(char*));
+    for (int i = 0; i < n; i++) {
+        copy[i] = (char*)malloc((n + 1) * sizeof(char));
+        strcpy(copy[i], board[i]);
+    }
+    list->solutions[list->count++] = copy;
+}
+
+// Backtracking solver
+void backtrack(int row, int n, char** board, bool* cols, bool* diag1, bool* diag2, ResultList* list) {
+    if (row == n) {
+        addSolution(list, board, n);
+        return;
+    }
+
+    for (int col = 0; col < n; col++) {
+        // Main diagonal index: row - col + (n - 1)
+        // Anti-diagonal index: row + col
+        if (cols[col] || diag1[row - col + n - 1] || diag2[row + col]) {
+            continue;
+        }
+
+        // Place Queen
+        board[row][col] = 'Q';
+        cols[col] = diag1[row - col + n - 1] = diag2[row + col] = true;
+
+        // Recurse to next row
+        backtrack(row + 1, n, board, cols, diag1, diag2, list);
+
+        // Backtrack (Undo placement)
+        board[row][col] = '.';
+        cols[col] = diag1[row - col + n - 1] = diag2[row + col] = false;
+    }
+}
+
+char*** solveNQueens(int n, int* returnSize, int** returnColumnSizes) {
+    ResultList list;
+    initList(&list);
+
+    // Initialize empty n x n board
+    char** board = (char**)malloc(n * sizeof(char*));
+    for (int i = 0; i < n; i++) {
+        board[i] = (char*)malloc((n + 1) * sizeof(char));
+        memset(board[i], '.', n);
+        board[i][n] = '\0';
+    }
+
+    // Lookup arrays for O(1) safety checks
+    bool* cols = (bool*)calloc(n, sizeof(bool));
+    bool* diag1 = (bool*)calloc(2 * n - 1, sizeof(bool));
+    bool* diag2 = (bool*)calloc(2 * n - 1, sizeof(bool));
+
+    // Start backtracking from row 0
+    backtrack(0, n, board, cols, diag1, diag2, &list);
+
+    // Free temporary operational memory
+    for (int i = 0; i < n; i++) free(board[i]);
+    free(board);
+    free(cols);
+    free(diag1);
+    free(diag2);
+
+    // Populate LeetCode's required output pointers
+    *returnSize = list.count;
+    *returnColumnSizes = (int*)malloc(list.count * sizeof(int));
+    for (int i = 0; i < list.count; i++) {
+        (*returnColumnSizes)[i] = n;
+    }
+
+    return list.solutions;
+}
