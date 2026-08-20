@@ -1,0 +1,62 @@
+#include <stdlib.h>
+
+// Structure to track update history records
+typedef struct {
+    int row1;
+    int col1;
+    int row2;
+    int col2;
+    int newValue;
+} UpdateRecord;
+
+// Main Object Structure
+typedef struct {
+    int** grid;
+    int rowSize;
+    int colSize;
+    UpdateRecord* history;
+    int historyCount;
+} SubrectangleQueries;
+
+// Initialize the data structure
+SubrectangleQueries* subrectangleQueriesCreate(int** rectangle, int rectangleSize, int* rectangleColSize) {
+    SubrectangleQueries* obj = (SubrectangleQueries*)malloc(sizeof(SubrectangleQueries));
+    
+    obj->grid = rectangle;
+    obj->rowSize = rectangleSize;
+    obj->colSize = rectangleColSize[0];
+    
+    // Constraints state at most 500 operations total
+    obj->history = (UpdateRecord*)malloc(500 * sizeof(UpdateRecord));
+    obj->historyCount = 0;
+    
+    return obj;
+}
+
+// O(1) Update: Just log the operation parameters to history
+void subrectangleQueriesUpdateSubrectangle(SubrectangleQueries* obj, int row1, int col1, int row2, int col2, int newValue) {
+    obj->history[obj->historyCount].row1 = row1;
+    obj->history[obj->historyCount].col1 = col1;
+    obj->history[obj->historyCount].row2 = row2;
+    obj->history[obj->historyCount].col2 = col2;
+    obj->history[obj->historyCount].newValue = newValue;
+    obj->historyCount++;
+}
+
+// O(U) Query: Scan history in reverse order to find the latest applicable update
+int subrectangleQueriesGetValue(SubrectangleQueries* obj, int row, int col) {
+    for (int i = obj->historyCount - 1; i >= 0; i--) {
+        if (row >= obj->history[i].row1 && row <= obj->history[i].row2 &&
+            col >= obj->history[i].col1 && col <= obj->history[i].col2) {
+            return obj->history[i].newValue;
+        }
+    }
+    // Return original matrix value if no updates targeted this position
+    return obj->grid[row][col];
+}
+
+// Free memory allocations
+void subrectangleQueriesFree(SubrectangleQueries* obj) {
+    free(obj->history);
+    free(obj);
+}
