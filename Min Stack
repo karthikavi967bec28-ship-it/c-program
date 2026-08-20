@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+// Define the Node structure for the stack
+typedef struct Node {
+    int val;
+    int min;
+    struct Node* next;
+} Node;
+
+// Define the MinStack structure
+typedef struct {
+    Node* topNode;
+} MinStack;
+
+/** Initializes the stack object */
+MinStack* minStackCreate() {
+    MinStack* obj = (MinStack*)malloc(sizeof(MinStack));
+    obj->topNode = NULL;
+    return obj;
+}
+
+/** Pushes the element val onto the stack */
+void minStackPush(MinStack* obj, int val) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->val = val;
+    
+    // If stack is empty, current val is the minimum.
+    // Otherwise, compare val with the current minimum at the top node.
+    if (obj->topNode == NULL) {
+        newNode->min = val;
+    } else {
+        newNode->min = (val < obj->topNode->min) ? val : obj->topNode->min;
+    }
+    
+    newNode->next = obj->topNode;
+    obj->topNode = newNode;
+}
+
+/** Removes the element on the top of the stack */
+void minStackPop(MinStack* obj) {
+    if (obj->topNode != NULL) {
+        Node* temp = obj->topNode;
+        obj->topNode = obj->topNode->next;
+        free(temp);
+    }
+}
+
+/** Gets the top element of the stack */
+int minStackTop(MinStack* obj) {
+    if (obj->topNode != NULL) {
+        return obj->topNode->val;
+    }
+    return 0; // Default fallback for an empty stack
+}
+
+/** Retrieves the minimum element in the stack */
+int minStackGetMin(MinStack* obj) {
+    if (obj->topNode != NULL) {
+        return obj->topNode->min;
+    }
+    return 0; // Default fallback for an empty stack
+}
+
+/** Deallocates memory assigned to the stack */
+void minStackFree(MinStack* obj) {
+    while (obj->topNode != NULL) {
+        minStackPop(obj);
+    }
+    free(obj);
+}
+
+/**
+ * Your MinStack struct will be instantiated and called as such:
+ * MinStack* obj = minStackCreate();
+ * minStackPush(obj, val);
+ * minStackPop(obj);
+ * int param_3 = minStackTop(obj);
+ * int param_4 = minStackGetMin(obj);
+ * minStackFree(obj);
+ */
