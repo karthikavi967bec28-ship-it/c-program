@@ -1,0 +1,103 @@
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Standard structure for a basic Queue Node
+typedef struct QueueNode {
+    int val;
+    struct QueueNode* next;
+} QueueNode;
+
+// Queue structure supporting standard FIFO operations
+typedef struct {
+    QueueNode* front;
+    QueueNode* rear;
+    int size;
+} Queue;
+
+// Helper function to create an empty queue
+Queue* createQueue() {
+    Queue* q = (Queue*)malloc(sizeof(Queue));
+    q->front = q->rear = NULL;
+    q->size = 0;
+    return q;
+}
+
+// Queue Push (Enqueue)
+void queuePush(Queue* q, int val) {
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    newNode->val = val;
+    newNode->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = newNode;
+    } else {
+        q->rear->next = newNode;
+        q->rear = newNode;
+    }
+    q->size++;
+}
+
+// Queue Pop (Dequeue)
+int queuePop(Queue* q) {
+    if (q->front == NULL) return -1;
+    QueueNode* temp = q->front;
+    int val = temp->val;
+    q->front = q->front->next;
+    if (q->front == NULL) {
+        q->rear = NULL;
+    }
+    free(temp);
+    q->size--;
+    return val;
+}
+
+// Main MyStack structure containing exactly one queue
+typedef struct {
+    Queue* q;
+} MyStack;
+
+/** Initializes the stack object */
+MyStack* myStackCreate() {
+    MyStack* stack = (MyStack*)malloc(sizeof(MyStack));
+    stack->q = createQueue();
+    return stack;
+}
+
+/** Pushes element x to the top of the stack */
+void myStackPush(MyStack* obj, int x) {
+    int currentSize = obj->q->size;
+    
+    // Step 1: Add the new element to the back of the queue
+    queuePush(obj->q, x);
+    
+    // Step 2: Rotate all previous elements to the back of the queue
+    for (int i = 0; i < currentSize; i++) {
+        queuePush(obj->q, queuePop(obj->q));
+    }
+}
+
+/** Removes the element on the top of the stack and returns it */
+int myStackPop(MyStack* obj) {
+    return queuePop(obj->q);
+}
+
+/** Returns the element on the top of the stack */
+int myStackTop(MyStack* obj) {
+    if (obj->q->front != NULL) {
+        return obj->q->front->val;
+    }
+    return -1;
+}
+
+/** Returns true if the stack is empty, false otherwise */
+bool myStackEmpty(MyStack* obj) {
+    return obj->q->size == 0;
+}
+
+/** Deallocates all memory assigned to the stack object */
+void myStackFree(MyStack* obj) {
+    while (obj->q->front != NULL) {
+        queuePop(obj->q);
+    }
+    free(obj->q);
+    free(obj);
+}
