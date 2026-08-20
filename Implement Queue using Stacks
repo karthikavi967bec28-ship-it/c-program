@@ -1,0 +1,70 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 105
+
+// Simple Stack implementation using fixed-size arrays
+typedef struct {
+    int data[MAX_SIZE];
+    int top;
+} Stack;
+
+void stackPush(Stack* s, int val) {
+    s->data[++(s->top)] = val;
+}
+
+int stackPop(Stack* s) {
+    return s->data[(s->top)--];
+}
+
+int stackPeek(Stack* s) {
+    return s->data[s->top];
+}
+
+bool stackIsEmpty(Stack* s) {
+    return s->top == -1;
+}
+
+// Queue structure containing the two stacks
+typedef struct {
+    Stack input;
+    Stack output;
+} MyQueue;
+
+MyQueue* myQueueCreate() {
+    MyQueue* obj = (MyQueue*)malloc(sizeof(MyQueue));
+    obj->input.top = -1;
+    obj->output.top = -1;
+    return obj;
+}
+
+void myQueuePush(MyQueue* obj, int x) {
+    stackPush(&(obj->input), x);
+}
+
+// Helper function to shift elements from input stack to output stack
+void shiftStacks(MyQueue* obj) {
+    if (stackIsEmpty(&(obj->output))) {
+        while (!stackIsEmpty(&(obj->input))) {
+            stackPush(&(obj->output), stackPop(&(obj->input)));
+        }
+    }
+}
+
+int myQueuePop(MyQueue* obj) {
+    shiftStacks(obj);
+    return stackPop(&(obj->output));
+}
+
+int myQueuePeek(MyQueue* obj) {
+    shiftStacks(obj);
+    return stackPeek(&(obj->output));
+}
+
+bool myQueueEmpty(MyQueue* obj) {
+    return stackIsEmpty(&(obj->input)) && stackIsEmpty(&(obj->output));
+}
+
+void myQueueFree(MyQueue* obj) {
+    free(obj);
+}
