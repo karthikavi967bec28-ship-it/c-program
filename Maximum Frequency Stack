@@ -1,0 +1,124 @@
+#include <stdlib.h>
+#include <string.h>
+
+#define HASH_SIZE 10007
+#define MAX_CALLS 20005
+
+// Hash map node to store frequency of each unique value
+typedef struct HashNode {
+    int key;
+    int val;
+    struct HashNode* next;
+} HashNode;
+
+// Simple Stack node for grouping values by frequency layers
+typedef struct StackNode {
+    int val;
+    struct StackNode* next;
+} StackNode;
+
+typedef struct {
+    HashNode* buckets[HASH_SIZE]; // Map: element -> frequency
+    StackNode* groups[MAX_CALLS]; // Map: frequency -> Stack of elements
+    int maxFreq;                  // Tracks the current global maximum frequency
+} FreqStack;
+
+// Helper to look up or update frequency inside our Hash Table
+int get_and_inc_freq(FreqStack* obj, int key) {
+    int index = abs(key) % HASH_SIZE;
+    HashNode* curr = obj->buckets[index];
+    while (curr) {
+        if (curr->key == key) {
+            curr->val++;
+            return curr->val;
+        }
+        curr = curr->next;
+    }
+    // Element not found, create a new hash node
+    HashNode* newNode = (HashNode*)malloc(sizeof(HashNode));
+    newNode->key = key;
+    newNode->val = 1;
+    newNode->next = obj->buckets[index];
+    obj->buckets[index] = newNode;
+    return 1;
+}
+
+// Helper to decrement frequency inside our Hash Table
+void dec_freq(FreqStack* obj, int key) {
+    int index = abs(key) % HASH_SIZE;
+    HashNode* curr = obj->buckets[index];
+    while (curr) {
+        if (curr->key == key) {
+            curr->val--;
+            return;
+        }
+        curr = curr->next;
+    }
+}
+
+/** Constructs an empty frequency stack */
+FreqStack* freqStackCreate() {
+    FreqStack* obj = (FreqStack*)malloc(sizeof(FreqStack));
+    memset(obj->buckets, 0, sizeof(obj->buckets));
+    memset(obj->groups, 0, sizeof(obj->groups));
+    obj->maxFreq = 0;
+    return obj;
+}
+
+/** Pushes an integer val onto the top of the stack */
+void freqStackPush(FreqStack* obj, int val) {
+    int f = get_and_inc_freq(obj, val);
+    if (f > obj->maxFreq) {
+        obj->maxFreq = f;
+    }
+    
+    // Push the element onto the stack corresponding to its current frequency
+    StackNode* newNode = (StackNode*)malloc(sizeof(StackNode));
+    newNode->val = val;
+    newNode->next = obj->groups[f];
+    obj->groups[f] = newNode;
+}
+
+/** Removes and returns the most frequent element in the stack */
+int freqStackPop(FreqStack* obj) {
+    int f = obj->maxFreq;
+    StackNode* topNode = obj->groups[f];
+    int val = topNode->val;
+    
+    // Remove element from the frequency level stack
+    obj->groups[f] = topNode->next;
+    free(topNode);
+    
+    // Decrement the element's global frequency count
+    dec_freq(obj, val);
+    
+    // If the top frequency stack becomes completely empty, decrement maxFreq
+    if (obj->groups[f] == NULL) {
+        obj->maxFreq--;
+    }
+    
+    return val;
+}
+
+/** Deallocates all memory assigned to the structure */
+void freqStackFree(FreqStack* obj) {
+    // Clear out any remaining stack nodes
+    for (int i = 0; i < MAX_CALLS; i++) {
+        StackNode* curr = obj->groups[i];
+        while (curr) {
+            StackNode* tmp = curr;
+            curr = curr->next;
+            free(tmp);
+        }
+    }
+    // Clear out hash map buckets
+    for (int i = 0; i < HASH_SIZE; i++) {
+        HashNode* curr = obj->buckets[i];
+        while (curr) {
+            HashNode* tmp = curr;
+            curr = curr->next;
+            free(tmp);
+        }
+    }
+    free(obj);
+}
