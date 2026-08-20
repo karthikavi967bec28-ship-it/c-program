@@ -1,0 +1,27 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+bool validateStackSequences(int* pushed, int pushedSize, int* popped, int poppedSize) {
+    // Dynamically allocate memory for our simulated stack
+    int* stack = (int*)malloc(pushedSize * sizeof(int));
+    int top = -1;      // Points to the top element of the stack (-1 means empty)
+    int popIdx = 0;    // Pointer to track the current index in the popped array
+
+    // Iterate through all elements to simulate the pushing sequence
+    for (int i = 0; i < pushedSize; i++) {
+        // Push the current element onto our stack
+        stack[++top] = pushed[i];
+        
+        // While stack is not empty and top of stack matches the expected popped element
+        while (top >= 0 && stack[top] == popped[popIdx]) {
+            top--;       // Pop the element from stack
+            popIdx++;    // Move to the next element in the popped sequence
+        }
+    }
+
+    // Free the allocated memory for the stack
+    free(stack);
+
+    // If all elements were successfully popped in sequence, popIdx will equal poppedSize
+    return popIdx == poppedSize;
+}
