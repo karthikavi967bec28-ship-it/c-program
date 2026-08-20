@@ -1,0 +1,77 @@
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int* stack;       // Array to store stack elements
+    int* inc;         // Array to store lazy increments
+    int maxSize;      // Maximum capacity of the stack
+    int top;          // Index pointing to the top element (-1 means empty)
+} CustomStack;
+
+/** Initializes the object with maxSize */
+CustomStack* customStackCreate(int maxSize) {
+    CustomStack* obj = (CustomStack*)malloc(sizeof(CustomStack));
+    obj->stack = (int*)malloc(maxSize * sizeof(int));
+    obj->inc = (int*)calloc(maxSize, sizeof(int)); // Use calloc to initialize with 0
+    obj->maxSize = maxSize;
+    obj->top = -1;
+    return obj;
+}
+
+/** Adds x to the top of the stack if it has not reached maxSize */
+void customStackPush(CustomStack* obj, int x) {
+    if (obj->top < obj->maxSize - 1) {
+        obj->top++;
+        obj->stack[obj->top] = x;
+    }
+}
+
+/** Pops and returns the top of the stack, or -1 if empty */
+int customStackPop(CustomStack* obj) {
+    if (obj->top == -1) {
+        return -1;
+    }
+    
+    // Calculate final value by adding any accumulated lazy increment
+    int actualVal = obj->stack[obj->top] + obj->inc[obj->top];
+    
+    // Pass the lazy increment down to the next lower element in the stack
+    if (obj->top > 0) {
+        obj->inc[obj->top - 1] += obj->inc[obj->top];
+    }
+    
+    // Clear the increment slot for the popped element position
+    obj->inc[obj->top] = 0;
+    obj->top--;
+    
+    return actualVal;
+}
+
+/** Increments the bottom k elements of the stack by val */
+void customStackIncrement(CustomStack* obj, int k, int val) {
+    if (obj->top == -1) {
+         return;
+    }
+    
+    // Find the boundary index: either k elements or up to the current top element
+    int idx = (k - 1 < obj->top) ? (k - 1) : obj->top;
+    
+    // Apply lazy increment to the boundary index
+    obj->inc[idx] += val;
+}
+
+/** Deallocates all memory assigned to the structure */
+void customStackFree(CustomStack* obj) {
+    free(obj->stack);
+    free(obj->inc);
+    free(obj);
+}
+
+/**
+ * Your CustomStack struct will be instantiated and called as such:
+ * CustomStack* obj = customStackCreate(maxSize);
+ * customStackPush(obj, x);
+ * int param_2 = customStackPop(obj);
+ * customStackIncrement(obj, k, val);
+ * customStackFree(obj);
+ */
