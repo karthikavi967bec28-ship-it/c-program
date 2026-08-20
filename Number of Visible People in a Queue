@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* canSeePersonsCount(int* heights, int heightsSize, int* returnSize) {
+    int* ans = (int*)calloc(heightsSize, sizeof(int));
+    *returnSize = heightsSize;
+    
+    // Stack array to store heights
+    int* stack = (int*)malloc(heightsSize * sizeof(int));
+    int top = -1; // Stack pointer
+    
+    // Process the queue from right to left
+    for (int i = heightsSize - 1; i >= 0; i--) {
+        int visible_count = 0;
+        
+        // Pop all elements from the stack that are shorter than the current person
+        while (top >= 0 && stack[top] < heights[i]) {
+            visible_count++;
+            top--; // Pop
+        }
+        
+        // If the stack is not empty, the current person can also see the next taller person
+        if (top >= 0) {
+            visible_count++;
+        }
+        
+        ans[i] = visible_count;
+        
+        // Push the current person's height onto the stack
+        stack[++top] = heights[i];
+    }
+    
+    free(stack);
+    return ans;
+}
