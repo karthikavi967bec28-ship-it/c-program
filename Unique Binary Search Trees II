@@ -1,0 +1,49 @@
+#include <stdlib.h>
+
+// Helper structure definition if not pulled globally
+// struct TreeNode { int val; struct TreeNode *left; struct TreeNode *right; };
+
+struct TreeNode** buildTrees(int start, int end, int* returnSize) {
+    if (start > end) {
+        struct TreeNode** base = (struct TreeNode**)malloc(sizeof(struct TreeNode*));
+        base[0] = NULL;
+        *returnSize = 1;
+        return base;
+    }
+    
+    struct TreeNode** allTrees = NULL;
+    int totalCount = 0;
+    
+    for (int i = start; i <= end; i++) {
+        int leftSize = 0, rightSize = 0;
+        struct TreeNode** leftTrees = buildTrees(start, i - 1, &leftSize);
+        struct TreeNode** rightTrees = buildTrees(i + 1, end, &rightSize);
+        
+        // Reallocate buffer space to hold combinations
+        int newCount = totalCount + (leftSize * rightSize);
+        allTrees = (struct TreeNode**)realloc(allTrees, newCount * sizeof(struct TreeNode*));
+        
+        for (int l = 0; l < leftSize; l++) {
+            for (int r = 0; r < rightSize; r++) {
+                struct TreeNode* root = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+                root->val = i;
+                root->left = leftTrees[l];
+                root->right = rightTrees[r];
+                allTrees[totalCount++] = root;
+            }
+        }
+        free(leftTrees);
+        free(rightTrees);
+    }
+    
+    *returnSize = totalCount;
+    return allTrees;
+}
+
+struct TreeNode** generateTrees(int n, int* returnSize) {
+    if (n == 0) {
+        *returnSize = 0;
+        return NULL;
+    }
+    return buildTrees(1, n, returnSize);
+}
