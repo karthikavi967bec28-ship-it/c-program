@@ -1,0 +1,124 @@
+#include <stdlib.h>
+#include <string.h>
+
+#define HASH_SIZE 20011 // Prime number for hash table size
+
+// Dynamic array structure to simulate a vector of indices
+typedef struct {
+    int* data;
+    int size;
+    int capacity;
+} IndexVector;
+
+// Hash map entry structure
+typedef struct HashEntry {
+    int key;              // The value from the input array
+    IndexVector indices;  // Sorted array of positions where this value occurs
+    struct HashEntry* next;
+} HashEntry;
+
+// Main Object Structure (Renamed to match LeetCode's template exactly)
+typedef struct {
+    HashEntry* table[HASH_SIZE];
+} RangeFreqQuery;
+
+// Helper: Append index to dynamic array
+void appendIndex(IndexVector* vec, int index) {
+    if (vec->size >= vec->capacity) {
+        vec->capacity = vec->capacity == 0 ? 4 : vec->capacity * 2;
+        vec->data = (int*)realloc(vec->data, vec->capacity * sizeof(int));
+    }
+    vec->data[vec->size++] = index;
+}
+
+// Helper: Retrieve or create a map entry for a specific key
+HashEntry* getOrCreateEntry(RangeFreqQuery* obj, int key) {
+    int hash = abs(key) % HASH_SIZE;
+    HashEntry* curr = obj->table[hash];
+    
+    while (curr != NULL) {
+        if (curr->key == key) return curr;
+        curr = curr->next;
+    }
+    
+    // Create new entry if not found
+    HashEntry* newEntry = (HashEntry*)malloc(sizeof(HashEntry));
+    newEntry->key = key;
+    newEntry->indices.data = NULL;
+    newEntry->indices.size = 0;
+    newEntry->indices.capacity = 0;
+    newEntry->next = obj->table[hash];
+    obj->table[hash] = newEntry;
+    
+    return newEntry;
+}
+
+// Constructor matching LeetCode's template
+RangeFreqQuery* rangeFreqQueryCreate(int* arr, int arrSize) {
+    RangeFreqQuery* obj = (RangeFreqQuery*)malloc(sizeof(RangeFreqQuery));
+    memset(obj->table, 0, sizeof(obj->table));
+    
+    for (int i = 0; i < arrSize; i++) {
+        HashEntry* entry = getOrCreateEntry(obj, arr[i]);
+        appendIndex(&entry->indices, i);
+    }
+    
+    return obj;
+}
+
+// Helper: Custom binary search to find the lower bound index position
+int lowerBound(int* arr, int size, int target) {
+    int low = 0, high = size;
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] >= target) high = mid;
+        else low = mid + 1;
+    }
+    return low;
+}
+
+// Helper: Custom binary search to find the upper bound index position
+int upperBound(int* arr, int size, int target) {
+    int low = 0, high = size;
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] > target) high = mid;
+        else low = mid + 1;
+    }
+    return low;
+}
+
+// Query operation matching LeetCode's template
+int rangeFreqQueryQuery(RangeFreqQuery* obj, int left, int right, int value) {
+    int hash = abs(value) % HASH_SIZE;
+    HashEntry* curr = obj->table[hash];
+    
+    while (curr != NULL) {
+        if (curr->key == value) {
+            int* indices = curr->indices.data;
+            int size = curr->indices.size;
+            
+            int leftIdx = lowerBound(indices, size, left);
+            int rightIdx = upperBound(indices, size, right);
+            
+            return rightIdx - leftIdx;
+        }
+        curr = curr->next;
+    }
+    
+    return 0; 
+}
+
+// Free memory allocations matching LeetCode's template
+void rangeFreqQueryFree(RangeFreqQuery* obj) {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        HashEntry* curr = obj->table[i];
+        while (curr != NULL) {
+            HashEntry* tmp = curr;
+            curr = curr->next;
+            free(tmp->indices.data);
+            free(tmp);
+        }
+    }
+    free(obj);
+}
