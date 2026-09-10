@@ -1,0 +1,42 @@
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+char** buildArray(int* target, int targetSize, int n, int* returnSize) {
+    // Each target element takes 1 "Push". 
+    // Elements not in target take 1 "Push" + 1 "Pop".
+    // Max possible operations bound is 2 * n.
+    char** operations = (char**)malloc(2 * n * sizeof(char*));
+    int op_count = 0;
+    int target_ptr = 0;
+    
+    // Loop through the integer stream from 1 up to n
+    for (int i = 1; i <= n; i++) {
+        // Stop early if we have successfully matched the entire target array
+        if (target_ptr == targetSize) {
+            break;
+        }
+        
+        // Every stream number must be pushed initially
+        operations[op_count++] = "Push";
+        
+        // Check if the current stream number matches the expected target element
+        if (i == target[target_ptr]) {
+            // Keep the element on the stack and move to the next target item
+            target_ptr++;
+        } else {
+            // The element is not part of our target, pop it off immediately
+            operations[op_count++] = "Pop";
+        }
+    }
+    
+    // Set the output size parameter
+    *returnSize = op_count;
+    
+    // Resize the array to fit only the exact number of operations used
+    operations = (char**)realloc(operations, op_count * sizeof(char*));
+    
+    return operations;
+}
