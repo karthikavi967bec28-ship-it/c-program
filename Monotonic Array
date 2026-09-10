@@ -1,0 +1,24 @@
+#include <stdbool.h>
+
+bool isMonotonic(int* nums, int numsSize) {
+    bool increasing = true;
+    bool decreasing = true;
+
+    for (int i = 1; i < numsSize; i++) {
+        // If an element drops, it cannot be monotonic increasing
+        if (nums[i] < nums[i - 1]) {
+            increasing = false;
+        }
+        // If an element rises, it cannot be monotonic decreasing
+        if (nums[i] > nums[i - 1]) {
+            decreasing = false;
+        }
+        
+        // Optimization: If it's neither increasing nor decreasing, break early
+        if (!increasing && !decreasing) {
+            return false;
+        }
+    }
+
+    return increasing || decreasing;
+}
