@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define a structure for the hash map entries
+typedef struct {
+    int key;
+    int value;
+    int is_occupied;
+} HashEntry;
+
+// A simple hash function with linear probing for collision handling
+int hash_function(int key, int size) {
+    int hash = key % size;
+    if (hash < 0) hash += size; // Handle negative numbers
+    return hash;
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    // 1. Allocate a hash table proportional to the input size
+    int tableSize = numsSize * 2; 
+    HashEntry* hashTable = (HashEntry*)calloc(tableSize, sizeof(HashEntry));
+    
+    // Allocate memory for the result array
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        
+        // 2. Look for the complement in the hash table
+        int compHash = hash_function(complement, tableSize);
+        while (hashTable[compHash].is_occupied) {
+            if (hashTable[compHash].key == complement) {
+                // Complement found! Return indices.
+                result[0] = hashTable[compHash].value;
+                result[1] = i;
+                free(hashTable); // Clean up hash table memory
+                return result;
+            }
+            compHash = (compHash + 1) % tableSize; // Move to next slot
+        }
+        
+        // 3. Insert current number into the hash table
+        int currentHash = hash_function(nums[i], tableSize);
+        while (hashTable[currentHash].is_occupied) {
+            currentHash = (currentHash + 1) % tableSize;
+        }
+        hashTable[currentHash].key = nums[i];
+        hashTable[currentHash].value = i;
+        hashTable[currentHash].is_occupied = 1;
+    }
+    
+    // Clean up memory if no solution is found (though constraint says one always exists)
+    free(hashTable);
+    *returnSize = 0;
+    return NULL;
+}
