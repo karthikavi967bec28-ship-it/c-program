@@ -1,0 +1,28 @@
+#include <stdbool.h>
+
+bool isPalindrome(int x) {
+    // 1. Negative numbers and numbers ending in 0 (except 0 itself) are not palindromes
+    if (x < 0 || (x % 10 == 0 && x != 0)) {
+        return false;
+    }
+
+    int revertedNumber = 0;
+    
+    // 2. Reverse the second half of the number
+    while (x > revertedNumber) {
+        int pop = x % 10;
+        
+        // Prevent overflow (though matching half-reversal logically prevents it, 
+        // it is good practice to ensure safety)
+        if (revertedNumber > (2147483647 - pop) / 10) {
+            return false; 
+        }
+        
+        revertedNumber = revertedNumber * 10 + pop;
+        x /= 10;
+    }
+
+    // 3. For even lengths: x == revertedNumber
+    //    For odd lengths: x == revertedNumber / 10 (gets rid of the middle digit)
+    return x == revertedNumber || x == revertedNumber / 10;
+}
