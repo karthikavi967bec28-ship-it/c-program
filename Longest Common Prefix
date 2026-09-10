@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+int findMaxLength(int* nums, int numsSize) {
+    // The maximum possible range for count is -numsSize to +numsSize
+    // So we use an array hash map sized 2 * numsSize + 1
+    int hashSize = 2 * numsSize + 1;
+    int* map = (int*)malloc(hashSize * sizeof(int));
+    
+    // Initialize map with -2 (indicating the count has not been seen yet)
+    for (int i = 0; i < hashSize; i++) {
+        map[i] = -2;
+    }
+    
+    // Base case: a count of 0 is conceptually seen at index -1
+    // We add numsSize to shift negative index keys into valid array bounds
+    map[0 + numsSize] = -1;
+    
+    int maxLength = 0;
+    int count = 0;
+    
+    for (int i = 0; i < numsSize; i++) {
+        // Treat 0 as -1, and 1 as +1
+        count += (nums[i] == 1) ? 1 : -1;
+        
+        int shiftedCount = count + numsSize;
+        
+        // If this count value has been seen before
+        if (map[shiftedCount] != -2) {
+            maxLength = MAX(maxLength, i - map[shiftedCount]);
+        } else {
+            // Store the first index where this prefix sum occurs
+            map[shiftedCount] = i;
+        }
+    }
+    
+    free(map);
+    return maxLength;
+}
