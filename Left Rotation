@@ -1,0 +1,221 @@
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+int* rotateLeft(int d, int arr_count, int* arr, int* result_count) {
+    *result_count = arr_count;
+    int* result = malloc(arr_count * sizeof(int));
+    if (!result) {
+        return NULL; 
+    }
+    for (int i = 0; i < arr_count; i++) {
+        result[i] = arr[(i + d) % arr_count];
+    }
+    return result;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (fptr == NULL) {
+        perror("fopen failed");
+        return EXIT_FAILURE;
+    }
+
+    char* line = readline();
+    char** first_multiple_input = split_string(rtrim(line));
+    if (first_multiple_input == NULL || first_multiple_input[0] == NULL || first_multiple_input[1] == NULL) {
+        fprintf(stderr, "Invalid input format for n and d\n");
+        if(line) free(line);
+        if(first_multiple_input) free(first_multiple_input);
+        fclose(fptr);
+        return EXIT_FAILURE;
+    }
+
+    int n = parse_int(*(first_multiple_input + 0));
+    int d = parse_int(*(first_multiple_input + 1));
+
+    free(line);
+    free(first_multiple_input);
+
+    char* arr_line = readline();
+    char** arr_temp = split_string(rtrim(arr_line));
+     if (arr_temp == NULL) {
+        if(arr_line) free(arr_line);
+        fclose(fptr);
+        return EXIT_FAILURE;
+    }
+
+
+    int* arr = malloc(n * sizeof(int));
+    if (arr == NULL) exit(EXIT_FAILURE);
+
+    for (int i = 0; i < n; i++) {
+        if (arr_temp[i] == NULL) exit(EXIT_FAILURE);
+        int arr_item = parse_int(*(arr_temp + i));
+        *(arr + i) = arr_item;
+    }
+
+    free(arr_line);
+    free(arr_temp);
+
+
+    int result_count;
+    int* result = rotateLeft(d, n, arr, &result_count);
+
+    for (int i = 0; i < result_count; i++) {
+        fprintf(fptr, "%d", *(result + i));
+
+        if (i != result_count - 1) {
+            fprintf(fptr, " ");
+        }
+    }
+
+    fprintf(fptr, "\n");
+
+    fclose(fptr);
+
+    // Free dynamically allocated memory
+    free(arr);
+    free(result);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+
+    char* data = malloc(alloc_length);
+    if (!data) exit(EXIT_FAILURE);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+             if (ferror(stdin)) { perror("fgets failed"); free(data); exit(EXIT_FAILURE); }
+            break;
+        }
+
+        data_length += strlen(cursor);
+
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        char* new_data = realloc(data, alloc_length);
+         if (!new_data) { free(data); exit(EXIT_FAILURE); }
+        data = new_data;
+    }
+
+     if (data_length > 0 && data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+        char* new_data = realloc(data, data_length);
+        if (new_data) data = new_data;
+    } else if (data_length == 0 && feof(stdin)) {
+        free(data);
+        return NULL;
+    } else {
+         char* new_data = realloc(data, data_length + 1);
+         if (new_data) {
+             data = new_data;
+             data[data_length] = '\0';
+         } else {
+             data[data_length] = '\0';
+         }
+    }
+
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str) {
+        return NULL;
+    }
+
+    if (!*str) {
+        return str;
+    }
+
+    while (*str != '\0' && isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str) {
+        return NULL;
+    }
+
+    if (!*str) {
+        return str;
+    }
+
+    char* end = str + strlen(str) - 1;
+
+    while (end >= str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    int spaces = 0;
+    char* token = strtok(str, " ");
+
+    while (token) {
+        char** new_splits = realloc(splits, sizeof(char*) * (spaces + 1));
+        if (!new_splits) { free(splits); exit(EXIT_FAILURE); }
+        splits = new_splits;
+        splits[spaces] = token;
+        spaces++;
+        token = strtok(NULL, " ");
+    }
+
+    char** new_splits = realloc(splits, sizeof(char*) * (spaces + 1));
+    if (!new_splits) { free(splits); exit(EXIT_FAILURE); }
+    splits = new_splits;
+    splits[spaces] = NULL;
+
+
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    long value = strtol(str, &endptr, 10);
+
+    if (endptr == str || *endptr != '\0') {
+         fprintf(stderr, "Error: Invalid integer format: %s\n", str);
+        exit(EXIT_FAILURE);
+    }
+
+     if (value > INT_MAX || value < INT_MIN) {
+        fprintf(stderr, "Error: Integer value out of range: %ld\n", value);
+        exit(EXIT_FAILURE);
+    }
+
+
+    return (int)value;
+}
