@@ -1,0 +1,37 @@
+#include <stdlib.h>
+
+/**
+ * Return an array of arrays of size *returnSize*.
+ * The sizes of the arrays are returned as *returnColumnSizes* array.
+ * Note: Both returned array and *returnColumnSizes* array must be malloced, assume caller calls free().
+ */
+int** generate(int numRows, int* returnSize, int** returnColumnSizes) {
+    // 1. Set the total number of rows to return
+    *returnSize = numRows;
+    
+    // 2. Allocate the top-level array of pointers (one pointer per row)
+    int** triangle = (int**)malloc(numRows * sizeof(int*));
+    
+    // 3. Allocate the array that holds the column size of each row
+    *returnColumnSizes = (int*)malloc(numRows * sizeof(int));
+    
+    // 4. Construct each row of Pascal's Triangle
+    for (int i = 0; i < numRows; i++) {
+        // Row 'i' has exactly 'i + 1' elements
+        (*returnColumnSizes)[i] = i + 1;
+        
+        // Allocate memory for the elements of row 'i'
+        triangle[i] = (int*)malloc((i + 1) * sizeof(int));
+        
+        // First and last element of every row is always 1
+        triangle[i][0] = 1;
+        triangle[i][i] = 1;
+        
+        // Fill in the middle elements using values from the previous row
+        for (int j = 1; j < i; j++) {
+            triangle[i][j] = triangle[i - 1][j - 1] + triangle[i - 1][j];
+        }
+    }
+    
+    return triangle;
+}
