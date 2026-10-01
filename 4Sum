@@ -1,0 +1,82 @@
+#include <stdlib.h>
+
+// Comparison function for qsort to sort integers in ascending order
+int compare(const void* a, const void* b) {
+    long long diff = *(const int*)a - *(const int*)b;
+    if (diff < 0) return -1;
+    if (diff > 0) return 1;
+    return 0;
+}
+
+/**
+ * Return an array of arrays of size *returnSize*.
+ * The sizes of the arrays are returned as *returnColumnSizes* array.
+ * Note: Both returned array and *returnColumnSizes* array must be malloced, assume caller calls free().
+ */
+int** fourSum(int* nums, int numsSize, int target, int* returnSize, int** returnColumnSizes) {
+    *returnSize = 0;
+    if (numsSize < 4) {
+        *returnColumnSizes = NULL;
+        return NULL;
+    }
+
+    // 1. Sort the array to easily handle duplicates and use two pointers
+    qsort(nums, numsSize, sizeof(int), compare);
+
+    int capacity = 16;
+    int** result = (int**)malloc(capacity * sizeof(int*));
+    *returnColumnSizes = (int*)malloc(capacity * sizeof(int));
+
+    // 2. First pointer (i)
+    for (int i = 0; i < numsSize - 3; i++) {
+        // Skip duplicate combinations for the first position
+        if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+        // 3. Second pointer (j)
+        for (int j = i + 1; j < numsSize - 2; j++) {
+            // Skip duplicate combinations for the second position
+            if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+            // 4. Initialize left and right boundaries for remaining two elements
+            int left = j + 1;
+            int right = numsSize - 1;
+
+            while (left < right) {
+                // Use long long to avoid integer overflow during summation
+                long long sum = (long long)nums[i] + nums[j] + nums[left] + nums[right];
+
+                if (sum == target) {
+                    // Double the capacity if we run out of allocated space
+                    if (*returnSize >= capacity) {
+                        capacity *= 2;
+                        result = (int**)realloc(result, capacity * sizeof(int*));
+                        *returnColumnSizes = (int*)realloc(*returnColumnSizes, capacity * sizeof(int));
+                    }
+
+                    // Save the matching unique quadruplet
+                    result[*returnSize] = (int*)malloc(4 * sizeof(int));
+                    result[*returnSize][0] = nums[i];
+                    result[*returnSize][1] = nums[j];
+                    result[*returnSize][2] = nums[left];
+                    result[*returnSize][3] = nums[right];
+                    (*returnColumnSizes)[*returnSize] = 4;
+                    (*returnSize)++;
+
+                    // Skip duplicates for the third pointer (left)
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    // Skip duplicates for the fourth pointer (right)
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+
+                    left++;
+                    right--;
+                } else if (sum < target) {
+                    left++; // Sum is too small, move left pointer rightward
+                } else {
+                    right--; // Sum is too big, move right pointer leftward
+                }
+            }
+        }
+    }
+
+    return result;
+}
